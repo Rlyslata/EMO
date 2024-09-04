@@ -1,0 +1,4 @@
+2024-07-29 16:05:35,873 - ==> Logging on master GPU: 0
+2024-07-29 16:05:35,873 - ==> Running Trainer: CLS
+2024-07-29 16:05:35,873 - ==> Using GPU: [0] for Training
+2024-07-29 16:05:35,873 - ==> Building model

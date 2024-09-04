@@ -1,0 +1,248 @@
+2024-09-04 22:56:48,509 - ==> Logging on master GPU: 0
+2024-09-04 22:56:48,510 - ==> Running Trainer: CLS
+2024-09-04 22:56:48,510 - ==> Using GPU: [0] for Training
+2024-09-04 22:56:48,510 - ==> Building model
+2024-09-04 22:56:48,618 - ==> Load checkpoint: resources/EMO-1M/net.pth
+2024-09-04 22:56:50,121 - 
+------------------------------------ EMO ------------------------------------
+| module                        | #parameters or shape   | #flops      |
+|:------------------------------|:-----------------------|:------------|
+| model                         | 1.361M                 | 0.261G      |
+|  stage0                       |  2.76K                 |  19.269M    |
+|   stage0.0.convs.0            |   0.72K                |   8.731M    |
+|    stage0.0.convs.0.0         |    0.672K              |    8.129M   |
+|     stage0.0.convs.0.0.weight |     (24, 3, 3, 3)      |             |
+|     stage0.0.convs.0.0.bias   |     (24,)              |             |
+|    stage0.0.convs.0.1         |    48                  |    0.602M   |
+|     stage0.0.convs.0.1.weight |     (24,)              |             |
+|     stage0.0.convs.0.1.bias   |     (24,)              |             |
+|   stage0.1                    |   2.04K                |   10.538M   |
+|    stage0.1.conv_local        |    0.264K              |    3.312M   |
+|     stage0.1.conv_local.conv  |     0.216K             |     2.71M   |
+|     stage0.1.conv_local.norm  |     48                 |     0.602M  |
+|    stage0.1.se                |    1.2K                |    1.152K   |
+|     stage0.1.se.conv_reduce   |     0.6K               |     0.576K  |
+|     stage0.1.se.conv_expand   |     0.6K               |     0.576K  |
+|    stage0.1.proj.conv         |    0.576K              |    7.225M   |
+|     stage0.1.proj.conv.weight |     (24, 24, 1, 1)     |             |
+|  stage1                       |  11.504K               |  57.702M    |
+|   stage1.0                    |   6.576K               |   42.449M   |
+|    stage1.0.norm              |    48                  |    0.602M   |
+|     stage1.0.norm.weight      |     (24,)              |             |
+|     stage1.0.norm.bias        |     (24,)              |             |
+|    stage1.0.v.conv            |    2.4K                |    28.901M  |
+|     stage1.0.v.conv.weight    |     (96, 24, 1, 1)     |             |
+|     stage1.0.v.conv.bias      |     (96,)              |             |
+|    stage1.0.conv_local        |    1.056K              |    3.312M   |
+|     stage1.0.conv_local.conv  |     0.864K             |     2.71M   |
+|     stage1.0.conv_local.norm  |     0.192K             |     0.602M  |
+|    stage1.0.proj.conv         |    3.072K              |    9.634M   |
+|     stage1.0.proj.conv.weight |     (32, 96, 1, 1)     |             |
+|   stage1.1                    |   4.928K               |   15.254M   |
+|    stage1.1.norm              |    64                  |    0.201M   |
+|     stage1.1.norm.weight      |     (32,)              |             |
+|     stage1.1.norm.bias        |     (32,)              |             |
+|    stage1.1.v.conv            |    2.112K              |    6.423M   |
+|     stage1.1.v.conv.weight    |     (64, 32, 1, 1)     |             |
+|     stage1.1.v.conv.bias      |     (64,)              |             |
+|    stage1.1.conv_local        |    0.704K              |    2.208M   |
+|     stage1.1.conv_local.conv  |     0.576K             |     1.806M  |
+|     stage1.1.conv_local.norm  |     0.128K             |     0.401M  |
+|    stage1.1.proj.conv         |    2.048K              |    6.423M   |
+|     stage1.1.proj.conv.weight |     (32, 64, 1, 1)     |             |
+|  stage2                       |  27.84K                |  33.8M      |
+|   stage2.0                    |   14.784K              |   23.658M   |
+|    stage2.0.norm              |    64                  |    0.201M   |
+|     stage2.0.norm.weight      |     (32,)              |             |
+|     stage2.0.norm.bias        |     (32,)              |             |
+|    stage2.0.v.conv            |    5.28K               |    16.056M  |
+|     stage2.0.v.conv.weight    |     (160, 32, 1, 1)    |             |
+|     stage2.0.v.conv.bias      |     (160,)             |             |
+|    stage2.0.conv_local        |    1.76K               |    1.38M    |
+|     stage2.0.conv_local.conv  |     1.44K              |     1.129M  |
+|     stage2.0.conv_local.norm  |     0.32K              |     0.251M  |
+|    stage2.0.proj.conv         |    7.68K               |    6.021M   |
+|     stage2.0.proj.conv.weight |     (48, 160, 1, 1)    |             |
+|   stage2.1                    |   13.056K              |   10.142M   |
+|    stage2.1.norm              |    96                  |    75.264K  |
+|     stage2.1.norm.weight      |     (48,)              |             |
+|     stage2.1.norm.bias        |     (48,)              |             |
+|    stage2.1.v.conv            |    5.88K               |    4.516M   |
+|     stage2.1.v.conv.weight    |     (120, 48, 1, 1)    |             |
+|     stage2.1.v.conv.bias      |     (120,)             |             |
+|    stage2.1.conv_local        |    1.32K               |    1.035M   |
+|     stage2.1.conv_local.conv  |     1.08K              |     0.847M  |
+|     stage2.1.conv_local.norm  |     0.24K              |     0.188M  |
+|    stage2.1.proj.conv         |    5.76K               |    4.516M   |
+|     stage2.1.proj.conv.weight |     (48, 120, 1, 1)    |             |
+|  stage3                       |  0.453M                |  0.108G     |
+|   stage3.0                    |   45.024K              |   17.066M   |
+|    stage3.0.norm.norm         |    96                  |    0.188M   |
+|     stage3.0.norm.norm.weight |     (48,)              |             |
+|     stage3.0.norm.norm.bias   |     (48,)              |             |
+|    stage3.0.v.conv            |    14.112K             |    10.838M  |
+|     stage3.0.v.conv.weight    |     (288, 48, 1, 1)    |             |
+|     stage3.0.v.conv.bias      |     (288,)             |             |
+|    stage3.0.conv_local        |    7.776K              |    1.524M   |
+|     stage3.0.conv_local.conv  |     7.2K               |     1.411M  |
+|     stage3.0.conv_local.norm  |     0.576K             |     0.113M  |
+|    stage3.0.proj.conv         |    23.04K              |    4.516M   |
+|     stage3.0.proj.conv.weight |     (80, 288, 1, 1)    |             |
+|   stage3.1                    |   58.24K               |   12.92M    |
+|    stage3.1.norm.norm         |    0.16K               |    78.4K    |
+|     stage3.1.norm.norm.weight |     (80,)              |             |
+|     stage3.1.norm.norm.bias   |     (80,)              |             |
+|    stage3.1.qk.conv           |    12.96K              |    2.509M   |
+|     stage3.1.qk.conv.weight   |     (160, 80, 1, 1)    |             |
+|     stage3.1.qk.conv.bias     |     (160,)             |             |
+|    stage3.1.v.conv            |    19.44K              |    3.763M   |
+|     stage3.1.v.conv.weight    |     (240, 80, 1, 1)    |             |
+|     stage3.1.v.conv.bias      |     (240,)             |             |
+|    stage3.1.conv_local        |    6.48K               |    1.27M    |
+|     stage3.1.conv_local.conv  |     6K                 |     1.176M  |
+|     stage3.1.conv_local.norm  |     0.48K              |     94.08K  |
+|    stage3.1.proj.conv         |    19.2K               |    3.763M   |
+|     stage3.1.proj.conv.weight |     (80, 240, 1, 1)    |             |
+|   stage3.2                    |   58.24K               |   12.92M    |
+|    stage3.2.norm.norm         |    0.16K               |    78.4K    |
+|     stage3.2.norm.norm.weight |     (80,)              |             |
+|     stage3.2.norm.norm.bias   |     (80,)              |             |
+|    stage3.2.qk.conv           |    12.96K              |    2.509M   |
+|     stage3.2.qk.conv.weight   |     (160, 80, 1, 1)    |             |
+|     stage3.2.qk.conv.bias     |     (160,)             |             |
+|    stage3.2.v.conv            |    19.44K              |    3.763M   |
+|     stage3.2.v.conv.weight    |     (240, 80, 1, 1)    |             |
+|     stage3.2.v.conv.bias      |     (240,)             |             |
+|    stage3.2.conv_local        |    6.48K               |    1.27M    |
+|     stage3.2.conv_local.conv  |     6K                 |     1.176M  |
+|     stage3.2.conv_local.norm  |     0.48K              |     94.08K  |
+|    stage3.2.proj.conv         |    19.2K               |    3.763M   |
+|     stage3.2.proj.conv.weight |     (80, 240, 1, 1)    |             |
+|   stage3.3                    |   58.24K               |   12.92M    |
+|    stage3.3.norm.norm         |    0.16K               |    78.4K    |
+|     stage3.3.norm.norm.weight |     (80,)              |             |
+|     stage3.3.norm.norm.bias   |     (80,)              |             |
+|    stage3.3.qk.conv           |    12.96K              |    2.509M   |
+|     stage3.3.qk.conv.weight   |     (160, 80, 1, 1)    |             |
+|     stage3.3.qk.conv.bias     |     (160,)             |             |
+|    stage3.3.v.conv            |    19.44K              |    3.763M   |
+|     stage3.3.v.conv.weight    |     (240, 80, 1, 1)    |             |
+|     stage3.3.v.conv.bias      |     (240,)             |             |
+|    stage3.3.conv_local        |    6.48K               |    1.27M    |
+|     stage3.3.conv_local.conv  |     6K                 |     1.176M  |
+|     stage3.3.conv_local.norm  |     0.48K              |     94.08K  |
+|    stage3.3.proj.conv         |    19.2K               |    3.763M   |
+|     stage3.3.proj.conv.weight |     (80, 240, 1, 1)    |             |
+|   stage3.4                    |   58.24K               |   12.92M    |
+|    stage3.4.norm.norm         |    0.16K               |    78.4K    |
+|     stage3.4.norm.norm.weight |     (80,)              |             |
+|     stage3.4.norm.norm.bias   |     (80,)              |             |
+|    stage3.4.qk.conv           |    12.96K              |    2.509M   |
+|     stage3.4.qk.conv.weight   |     (160, 80, 1, 1)    |             |
+|     stage3.4.qk.conv.bias     |     (160,)             |             |
+|    stage3.4.v.conv            |    19.44K              |    3.763M   |
+|     stage3.4.v.conv.weight    |     (240, 80, 1, 1)    |             |
+|     stage3.4.v.conv.bias      |     (240,)             |             |
+|    stage3.4.conv_local        |    6.48K               |    1.27M    |
+|     stage3.4.conv_local.conv  |     6K                 |     1.176M  |
+|     stage3.4.conv_local.norm  |     0.48K              |     94.08K  |
+|    stage3.4.proj.conv         |    19.2K               |    3.763M   |
+|     stage3.4.proj.conv.weight |     (80, 240, 1, 1)    |             |
+|   stage3.5                    |   58.24K               |   12.92M    |
+|    stage3.5.norm.norm         |    0.16K               |    78.4K    |
+|     stage3.5.norm.norm.weight |     (80,)              |             |
+|     stage3.5.norm.norm.bias   |     (80,)              |             |
+|    stage3.5.qk.conv           |    12.96K              |    2.509M   |
+|     stage3.5.qk.conv.weight   |     (160, 80, 1, 1)    |             |
+|     stage3.5.qk.conv.bias     |     (160,)             |             |
+|    stage3.5.v.conv            |    19.44K              |    3.763M   |
+|     stage3.5.v.conv.weight    |     (240, 80, 1, 1)    |             |
+|     stage3.5.v.conv.bias      |     (240,)             |             |
+|    stage3.5.conv_local        |    6.48K               |    1.27M    |
+|     stage3.5.conv_local.conv  |     6K                 |     1.176M  |
+|     stage3.5.conv_local.norm  |     0.48K              |     94.08K  |
+|    stage3.5.proj.conv         |    19.2K               |    3.763M   |
+|     stage3.5.proj.conv.weight |     (80, 240, 1, 1)    |             |
+|   stage3.6                    |   58.24K               |   12.92M    |
+|    stage3.6.norm.norm         |    0.16K               |    78.4K    |
+|     stage3.6.norm.norm.weight |     (80,)              |             |
+|     stage3.6.norm.norm.bias   |     (80,)              |             |
+|    stage3.6.qk.conv           |    12.96K              |    2.509M   |
+|     stage3.6.qk.conv.weight   |     (160, 80, 1, 1)    |             |
+|     stage3.6.qk.conv.bias     |     (160,)             |             |
+|    stage3.6.v.conv            |    19.44K              |    3.763M   |
+|     stage3.6.v.conv.weight    |     (240, 80, 1, 1)    |             |
+|     stage3.6.v.conv.bias      |     (240,)             |             |
+|    stage3.6.conv_local        |    6.48K               |    1.27M    |
+|     stage3.6.conv_local.conv  |     6K                 |     1.176M  |
+|     stage3.6.conv_local.norm  |     0.48K              |     94.08K  |
+|    stage3.6.proj.conv         |    19.2K               |    3.763M   |
+|     stage3.6.proj.conv.weight |     (80, 240, 1, 1)    |             |
+|   stage3.7                    |   58.24K               |   12.92M    |
+|    stage3.7.norm.norm         |    0.16K               |    78.4K    |
+|     stage3.7.norm.norm.weight |     (80,)              |             |
+|     stage3.7.norm.norm.bias   |     (80,)              |             |
+|    stage3.7.qk.conv           |    12.96K              |    2.509M   |
+|     stage3.7.qk.conv.weight   |     (160, 80, 1, 1)    |             |
+|     stage3.7.qk.conv.bias     |     (160,)             |             |
+|    stage3.7.v.conv            |    19.44K              |    3.763M   |
+|     stage3.7.v.conv.weight    |     (240, 80, 1, 1)    |             |
+|     stage3.7.v.conv.bias      |     (240,)             |             |
+|    stage3.7.conv_local        |    6.48K               |    1.27M    |
+|     stage3.7.conv_local.conv  |     6K                 |     1.176M  |
+|     stage3.7.conv_local.norm  |     0.48K              |     94.08K  |
+|    stage3.7.proj.conv         |    19.2K               |    3.763M   |
+|     stage3.7.proj.conv.weight |     (80, 240, 1, 1)    |             |
+|  stage4                       |  0.697M                |  42.355M    |
+|   stage4.0                    |   0.155M               |   14.21M    |
+|    stage4.0.norm.norm         |    0.16K               |    78.4K    |
+|     stage4.0.norm.norm.weight |     (80,)              |             |
+|     stage4.0.norm.norm.bias   |     (80,)              |             |
+|    stage4.0.v.conv            |    45.36K              |    8.781M   |
+|     stage4.0.v.conv.weight    |     (560, 80, 1, 1)    |             |
+|     stage4.0.v.conv.bias      |     (560,)             |             |
+|    stage4.0.conv_local        |    15.12K              |    0.741M   |
+|     stage4.0.conv_local.conv  |     14K                |     0.686M  |
+|     stage4.0.conv_local.norm  |     1.12K              |     54.88K  |
+|    stage4.0.proj.conv         |    94.08K              |    4.61M    |
+|     stage4.0.proj.conv.weight |     (168, 560, 1, 1)   |             |
+|   stage4.1                    |   0.271M               |   14.073M   |
+|    stage4.1.norm.norm         |    0.336K              |    41.16K   |
+|     stage4.1.norm.norm.weight |     (168,)             |             |
+|     stage4.1.norm.norm.bias   |     (168,)             |             |
+|    stage4.1.qk.conv           |    56.784K             |    2.766M   |
+|     stage4.1.qk.conv.weight   |     (336, 168, 1, 1)   |             |
+|     stage4.1.qk.conv.bias     |     (336,)             |             |
+|    stage4.1.v.conv            |    99.372K             |    4.84M    |
+|     stage4.1.v.conv.weight    |     (588, 168, 1, 1)   |             |
+|     stage4.1.v.conv.bias      |     (588,)             |             |
+|    stage4.1.conv_local        |    15.876K             |    0.778M   |
+|     stage4.1.conv_local.conv  |     14.7K              |     0.72M   |
+|     stage4.1.conv_local.norm  |     1.176K             |     57.624K |
+|    stage4.1.proj.conv         |    98.784K             |    4.84M    |
+|     stage4.1.proj.conv.weight |     (168, 588, 1, 1)   |             |
+|   stage4.2                    |   0.271M               |   14.073M   |
+|    stage4.2.norm.norm         |    0.336K              |    41.16K   |
+|     stage4.2.norm.norm.weight |     (168,)             |             |
+|     stage4.2.norm.norm.bias   |     (168,)             |             |
+|    stage4.2.qk.conv           |    56.784K             |    2.766M   |
+|     stage4.2.qk.conv.weight   |     (336, 168, 1, 1)   |             |
+|     stage4.2.qk.conv.bias     |     (336,)             |             |
+|    stage4.2.v.conv            |    99.372K             |    4.84M    |
+|     stage4.2.v.conv.weight    |     (588, 168, 1, 1)   |             |
+|     stage4.2.v.conv.bias      |     (588,)             |             |
+|    stage4.2.conv_local        |    15.876K             |    0.778M   |
+|     stage4.2.conv_local.conv  |     14.7K              |     0.72M   |
+|     stage4.2.conv_local.norm  |     1.176K             |     57.624K |
+|    stage4.2.proj.conv         |    98.784K             |    4.84M    |
+|     stage4.2.proj.conv.weight |     (168, 588, 1, 1)   |             |
+|  norm.norm                    |  0.336K                |  41.16K     |
+|   norm.norm.weight            |   (168,)               |             |
+|   norm.norm.bias              |   (168,)               |             |
+|  head                         |  0.169M                |  0.168M     |
+|   head.weight                 |   (1000, 168)          |             |
+|   head.bias                   |   (1000,)              |             |
+-----------------------------------------------------------------------------
+2024-09-04 22:56:50,123 - ==> Creating optimizer
+2024-09-04 22:56:50,124 - ==> Native DDP
+2024-09-04 22:56:50,137 - ==> Loading dataset: DefaultCLS
