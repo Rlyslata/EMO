@@ -10,15 +10,15 @@ mount -t tmpfs -o size=1200G -o nr_inodes=10000000 tmpfs /dev/shm/tmp
 
 echo 'copy [ADEChallengeData2016] ...'
 mkdir /dev/shm/tmp/ade
-cd /youtu_fuxi_team1_ceph/vtzhang/codes/pts_cls/down-stream-tasks/mmsegmentation
-rsync -av /youtu_fuxi_team1_ceph/vtzhang/codes/data/ade/ADEChallengeData2016 /dev/shm/tmp/ade
+cd /home/dl/project/EMO/EMO/pts_cls/down-stream-tasks/mmsegmentation
+rsync -av /home/dl/project/EMO/EMO/data/ade/ADEChallengeData2016 /dev/shm/tmp/ade
 #ln -sf /dev/shm/tmp/ade ./data/ade
 
-cd /youtu_fuxi_team1_ceph/vtzhang/codes/pts_cls/refs/apex
+cd /home/dl/project/EMO/EMO/pts_cls/refs/apex
 pip3 install -v --disable-pip-version-check --no-cache-dir ./
-cd /youtu_fuxi_team1_ceph/vtzhang/codes/pts_cls/refs/mmsegmentation
+cd /home/dl/project/EMO/EMO/pts_cls/refs/mmsegmentation
 
-# python3 tools/convert_datasets/voc_aug.py /youtu_fuxi_team1_ceph/vtzhang/codes/data/voc/VOCdevkit /youtu_fuxi_team1_ceph/vtzhang/codes/data/voc/VOCdevkit/VOCaug --nproc 8
+# python3 tools/convert_datasets/voc_aug.py /home/dl/project/EMO/EMO/data/voc/VOCdevkit /home/dl/project/EMO/EMO/data/voc/VOCdevkit/VOCaug --nproc 8
 
 #./tools/dist_train_vtzhang.sh configs/deeplabv3_emo/deeplabv3_metamobile1M_pretrain_512x512_80k_ade20k.py 8 --auto-resume
 #./tools/dist_train_vtzhang.sh configs/deeplabv3_emo/deeplabv3_metamobile2M_pretrain_512x512_80k_ade20k.py 8 --auto-resume

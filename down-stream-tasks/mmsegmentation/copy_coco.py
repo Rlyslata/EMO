@@ -19,7 +19,7 @@ def copy_s_imgs(s_imgs, t_imgs, mode):
 	
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument('-s', '--source', type=str, default='/youtu_fuxi_team1_ceph/vtzhang/codes/data')
+	parser.add_argument('-s', '--source', type=str, default='/home/dl/project/EMO/EMO/data')
 	parser.add_argument('-m', '--mode', type=str, default='train')
 	parser.add_argument('-y', '--year', type=str, default='2017')
 	parser.add_argument('-t', '--thr', type=int, default=20)

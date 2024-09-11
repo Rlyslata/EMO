@@ -93,7 +93,7 @@ class iRMB(nn.Module):
 
 class EMO(nn.Module):
 	
-	def __init__(self, dim_in=3, num_classes=1000, img_size=224,
+	def __init__(self, dim_in=3, num_classes=2, img_size=224,
 				 depths=[1, 2, 4, 2], stem_dim=16, embed_dims=[64, 128, 256, 512], exp_ratios=[4., 4., 4., 4.],
 				 norm_layers=['bn_2d', 'bn_2d', 'bn_2d', 'bn_2d'], act_layers=['relu', 'relu', 'relu', 'relu'],
 				 dw_kss=[3, 3, 5, 5], se_ratios=[0.0, 0.0, 0.0, 0.0], dim_heads=[32, 32, 32, 32],
@@ -259,7 +259,6 @@ if __name__ == '__main__':
 	import copy
 	import time
 	
-	
 	def get_timepc():
 		if torch.cuda.is_available():
 			torch.cuda.synchronize()
@@ -285,7 +284,9 @@ if __name__ == '__main__':
 
 	fn.eval()
 	y = fn(x)
-	print(y['out'])
+	print(y['out'].shape)
+	print(y['out_kd'].shape)
+
 	
 	# fn1 = copy.deepcopy(fn)
 	# for blk in fn1.stage0:

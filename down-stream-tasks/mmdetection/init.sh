@@ -10,26 +10,26 @@ mount -t tmpfs -o size=1200G -o nr_inodes=10000000 tmpfs /dev/shm/tmp
 
 echo 'copy [coco_2017] ...'
 mkdir /dev/shm/tmp/coco_2017
-cd /youtu_fuxi_team1_ceph/vtzhang/codes/pts_cls/down-stream-tasks/mmdetection
-python3 copy_coco.py -s /youtu_fuxi_team1_ceph/vtzhang/codes/data -m train -y 2017 -t 20
+cd /home/dl/project/EMO/EMO/pts_cls/down-stream-tasks/mmdetection
+python3 copy_coco.py -s /home/dl/project/EMO/EMO/data -m train -y 2017 -t 20
 echo '[coco_2017] train finished ...'
-python3 copy_coco.py -s /youtu_fuxi_team1_ceph/vtzhang/codes/data -m val -y 2017 -t 20
+python3 copy_coco.py -s /home/dl/project/EMO/EMO/data -m val -y 2017 -t 20
 echo '[coco_2017] val finished ...'
-python3 copy_coco.py -s /youtu_fuxi_team1_ceph/vtzhang/codes/data -m test -y 2017 -t 20
+python3 copy_coco.py -s /home/dl/project/EMO/EMO/data -m test -y 2017 -t 20
 echo '[coco_2017] test finished ..'
-rsync -av /youtu_fuxi_team1_ceph/vtzhang/codes/data/coco_2017/annotations /dev/shm/tmp/coco_2017
-rsync -av /youtu_fuxi_team1_ceph/vtzhang/codes/data/coco_2017/person_detection_results /dev/shm/tmp/coco_2017
+rsync -av /home/dl/project/EMO/EMO/data/coco_2017/annotations /dev/shm/tmp/coco_2017
+rsync -av /home/dl/project/EMO/EMO/data/coco_2017/person_detection_results /dev/shm/tmp/coco_2017
 #ln -sf /dev/shm/tmp/coco_2017 data/coco
 
 #echo 'copy [ADEChallengeData2016] ...'
 #mkdir /dev/shm/tmp/ade
-#cd /youtu_fuxi_team1_ceph/vtzhang/codes/pts_cls/EAFormer_det_seg
-#rsync -av /youtu_fuxi_team1_ceph/vtzhang/codes/data/ade/ADEChallengeData2016 /dev/shm/tmp/ade
+#cd /home/dl/project/EMO/EMO/pts_cls/EAFormer_det_seg
+#rsync -av /home/dl/project/EMO/EMO/data/ade/ADEChallengeData2016 /dev/shm/tmp/ade
 #ln -sf /dev/shm/tmp/ade ./semantic_segmentation/data/ade
 
-cd /youtu_fuxi_team1_ceph/vtzhang/codes/pts_cls/refs/apex
+cd /home/dl/project/EMO/EMO/pts_cls/refs/apex
 pip3 install -v --disable-pip-version-check --no-cache-dir ./
-cd /youtu_fuxi_team1_ceph/vtzhang/codes/pts_cls/refs/mmdetection
+cd /home/dl/project/EMO/EMO/pts_cls/refs/mmdetection
 
 #./tools/dist_train_vtzhang.sh configs/ssd_emo/ssdlite_metamobile_scratch_600e_coco.py 8
 #PORT=29501 ./tools/dist_train_vtzhang.sh configs/ssd_emo/ssdlite_emo_5M_pretrain_coco.py 8

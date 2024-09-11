@@ -164,7 +164,7 @@ class CLS():
 		
 	def post_update(self):
 		if not self.cfg.trainer.mixup_kwargs or not self.isTrain:
-			top15, top15bs_cnt = accuracy(self.outputs['out'], self.targets, topk=(1, 5))
+			top15, top15bs_cnt = accuracy(self.outputs['out'], self.targets, topk=(1, 2))
 			# top1, top5 = top15
 			# update_log_term(self.log_terms.get('top1'), reduce_tensor(top1, self.world_size).clone().detach().item(), self.bs, self.master)
 			# update_log_term(self.log_terms.get('top5'), reduce_tensor(top5, self.world_size).clone().detach().item(), self.bs, self.master)

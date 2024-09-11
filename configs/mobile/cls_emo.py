@@ -10,10 +10,10 @@ type = 'CLS'
 # =========> dataset <=================================
 data = _Namespace()
 data.name = 'DefaultCLS'
-data.root = '/youtu_fuxi_team1_ceph/vtzhang/codes/data/imagenet'
+data.root = '/home/dl/project/EMO/EMO/data/imagenet'
 data.loader_type = 'pil'
 data.sampler = 'naive'
-data.nb_classes = 1000
+data.nb_classes = 2
 
 data.train_transforms = [
 	dict(type='timm_create_transform', input_size=size, is_training=True, color_jitter=0.4,
