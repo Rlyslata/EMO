@@ -17,12 +17,17 @@ def main():
 	parser.add_argument('--logger_rank', default=0, type=int, help='GPU id to use.')
 	parser.add_argument('opts', help='path.key=value', default=None, nargs=argparse.REMAINDER,)
 	cfg_terminal = parser.parse_args()
+
+	# 解析参数
 	cfg = get_cfg(cfg_terminal)
+	
+	# --sleep 倒计时， --memory 检查GPU显存占用
 	run_pre(cfg)
+	
 	init_training(cfg)
-	init_checkpoint(cfg)
-	trainer = get_trainer(cfg)
-	trainer.run()
+	# init_checkpoint(cfg)
+	# trainer = get_trainer(cfg)
+	# trainer.run()
 
 
 if __name__ == '__main__':

@@ -136,7 +136,9 @@ def get_params(model, names):
 
 def get_timepc(cuda_synchronize=False):
 	if torch.cuda.is_available() and cuda_synchronize:
+		#进行cuda操作同步，即所有cuda操作完成后才继续执行后续代码
 		torch.cuda.synchronize()
+	# 比time.time()精度更高的计时器
 	return time.perf_counter()
 
 

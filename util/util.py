@@ -17,7 +17,13 @@ def str2bool(v):
 		raise argparse.ArgumentTypeError('Unsupported value encountered.')
 
 
+
 def run_pre(cfg):
+	"""
+	* from time : 程序启动倒计时
+	* from memory : 循环检测机器中每个GPU占用是否过高, 占用过高则睡眠等待1s
+	* return : none
+	"""
 	# from time
 	if cfg.sleep > -1:
 		for i in range(cfg.sleep):
