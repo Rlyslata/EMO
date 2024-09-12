@@ -8,6 +8,9 @@ warnings.filterwarnings("ignore")
 
 
 def main():
+	"""
+	* 如果系统环境变量未设置 WORLD_SIZE, RANK, LOCAL_RANK 那么dist=False, 即会使用单机训练
+	"""
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-c', '--cfg_path', default='configs/debug.py')
 	parser.add_argument('-m', '--mode', default='train', choices=['train', 'test', 'ft'])
@@ -25,8 +28,14 @@ def main():
 	run_pre(cfg)
 	
 	init_training(cfg)
-	# init_checkpoint(cfg)
-	# trainer = get_trainer(cfg)
+	# print(cfg.trainer.data.num_workers)
+	# print(cfg.trainer.data.num_workers_per_gpu)
+	# print('world_size = {cfg.world_size} rank = {cfg.rank} local_rank = {cfg.local_rank} dist = {cfg.dist}')
+
+	#恢复或设置日志记录器
+	init_checkpoint(cfg)
+
+	trainer = get_trainer(cfg)
 	# trainer.run()
 
 

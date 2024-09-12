@@ -23,14 +23,20 @@ def init_training(cfg):
 	if not torch.cuda.is_available():
 		print('==> GPU error')
 		exit(0)
+	
+	# 释放所有缓存分配器中未占用的缓存内存，使这些内存可以用于其他GPU应用
 	torch.cuda.empty_cache()
 	if cfg.trainer.cuda_deterministic:  # slower, more reproducible
+
+		# 将使用确定性算法，但会影响效率
 		cudnn.deterministic = True
 		cudnn.benchmark = False
 	else:  # faster, less reproducible
 		cudnn.deterministic = False
 		cudnn.benchmark = True
 	# ---------- dist ----------
+
+	#是否使用分布式训练
 	cfg.dist = True
 	cfg.world_size, cfg.rank, cfg.local_rank = 1, 0, 0
 	cfg.ngpus_per_node = torch.cuda.device_count()
@@ -40,6 +46,7 @@ def init_training(cfg):
 		cfg.local_rank = int(os.environ['LOCAL_RANK'])
 		cfg.nnodes = cfg.world_size // cfg.ngpus_per_node
 	elif 'SLURM_PROCID' in os.environ:
+		# 用于高性能计算集群的资源管理器
 		cfg.rank = int(os.environ['SLURM_PROCID'])
 		cfg.local_rank = cfg.rank % cfg.ngpus_per_node
 		cfg.nnodes = cfg.world_size // cfg.ngpus_per_node
@@ -61,6 +68,8 @@ def init_training(cfg):
 	torch.manual_seed(seed)
 	torch.cuda.manual_seed(seed)
 	# ---------- dataset ----------
+
+	# batch_size 均分到各个GPU
 	if cfg.trainer.data.batch_size:
 		cfg.trainer.data.batch_size_per_gpu = cfg.trainer.data.batch_size // cfg.world_size
 		assert cfg.trainer.data.batch_size_per_gpu * cfg.world_size == cfg.trainer.data.batch_size

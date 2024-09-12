@@ -52,7 +52,12 @@ def makedirs(dirs, exist_ok=False):
 	
 	
 def init_checkpoint(cfg):
-
+	"""
+	* cfg.trainer.checkpoint 模型保存目录 runs_emo
+	* cfg.trainer.resume_dir==True 则从断点加载state_dict
+	* 单机训练：保存日志到runs_emo/logdir = '{}_{}_{}_{}'.format(cfg.trainer.name, cfg.model.name, cfg.data.name, time.strftime("%Y%m%d-%H%M%S"))
+	* 设置日志记录器cfg.logger， 和 SummaryWriter， 但分布式训练没有cfg.logger
+	"""
 	def rm_zero_size_file(path):
 			files = os.listdir(path)
 			for file in files:
@@ -62,6 +67,8 @@ def init_checkpoint(cfg):
 					os.remove(path)
 
 	os.makedirs(cfg.trainer.checkpoint, exist_ok=True)
+
+	# 从 checkpoint 加载
 	if cfg.trainer.resume_dir:
 		cfg.logdir = '{}/{}'.format(cfg.trainer.checkpoint, cfg.trainer.resume_dir)
 		checkpoint_path = cfg.model.model_kwargs['checkpoint_path']
@@ -74,6 +81,7 @@ def init_checkpoint(cfg):
 		cfg.trainer.topk_recorder = state_dict['topk_recorder']
 	else:
 		if cfg.master:
+			# 单机训练
 			logdir = '{}_{}_{}_{}'.format(cfg.trainer.name, cfg.model.name, cfg.data.name, time.strftime("%Y%m%d-%H%M%S"))
 			cfg.logdir = '{}/{}'.format(cfg.trainer.checkpoint, logdir)
 			os.makedirs(cfg.logdir, exist_ok=True)
@@ -82,7 +90,11 @@ def init_checkpoint(cfg):
 			cfg.logdir = None
 		cfg.trainer.iter, cfg.trainer.epoch = 0, 0
 		cfg.trainer.topk_recorder = dict(net_top1=[], net_top5=[], net_E_top1=[], net_E_top5=[])
+	
+	# 设置日志记录器，同时输出在stdout 与 文件中
 	cfg.logger = get_logger(cfg) if cfg.master else None
+
+	# tensorbord 用于记录数据和日志， comment会被追加在文件名末尾，以区分多次训练的日志
 	cfg.writer = SummaryWriter(log_dir=cfg.logdir, comment='') if cfg.master else None
 	log_msg(cfg.logger, f'==> Logging on master GPU: {cfg.logger_rank}')
 	# rm_zero_size_file(cfg.logdir) if cfg.master else None
@@ -123,6 +135,9 @@ def log_cfg(cfg):
 
 
 def get_logger(cfg, mode='a+'):
+	"""
+	return : 返回一个日志记录器， 输出在stdout 并记录在文件中， 文件记录位置为 '{}/log_{}.txt'.format(cfg.logdir, cfg.mode)
+	"""
 	log_format = '%(asctime)s - %(message)s'
 	logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=log_format, datefmt='%m/%d %I:%M:%S %p')
 	fh = logging.FileHandler('{}/log_{}.txt'.format(cfg.logdir, cfg.mode), mode=mode)
