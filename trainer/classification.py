@@ -37,8 +37,11 @@ class CLS():
 		# =========> model <=================================
 		log_msg(self.logger, '==> Using GPU: {} for Training'.format(list(range(cfg.world_size))))
 		log_msg(self.logger, '==> Building model')
+
+		# 创建模型，并加载参数
 		self.net = get_model(cfg.model)
 		self.net.to('cuda:{}'.format(cfg.local_rank))
+		# 将模型切换到评估模式，以确保模型在推理（预测）时不会应用训练时的行为，如 Dropout 和 BatchNorm 计算的变化。但仍会进行梯度计算
 		self.net.eval()
 		self.ema = cfg.trainer.ema
 		if self.ema:

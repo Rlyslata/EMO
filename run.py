@@ -21,7 +21,7 @@ def main():
 	parser.add_argument('opts', help='path.key=value', default=None, nargs=argparse.REMAINDER,)
 	cfg_terminal = parser.parse_args()
 
-	# 解析参数
+	# 解析参数，加载config/cls_emo.py中的参数，合并 cfg_terminal 为 cfg
 	cfg = get_cfg(cfg_terminal)
 	
 	# --sleep 倒计时， --memory 检查GPU显存占用

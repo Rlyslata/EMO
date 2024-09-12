@@ -13,6 +13,7 @@ data.name = 'DefaultCLS'
 data.root = '/home/dl/project/EMO/EMO/data/imagenet'
 data.loader_type = 'pil'
 data.sampler = 'naive'
+# 分类数
 data.nb_classes = 2
 
 data.train_transforms = [
@@ -88,6 +89,7 @@ loss.retain_graph = False
 # =========> logging <=================================
 logging = _Namespace()
 logging.log_terms_train = [
+    # : 是对齐标志，> 表示右对齐，.3 表示小数位数
 	dict(name='batch_t', fmt=':>5.3f', add_name='avg'),
 	dict(name='data_t', fmt=':>5.3f'),
 	dict(name='optim_t', fmt=':>5.3f'),
