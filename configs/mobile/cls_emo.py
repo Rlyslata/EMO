@@ -90,8 +90,13 @@ loss.retain_graph = False
 logging = _Namespace()
 logging.log_terms_train = [
     # : 是对齐标志，> 表示右对齐，.3 表示小数位数
+    # batch_t = data_t + optim_t，一个 batch_size 训练耗时
 	dict(name='batch_t', fmt=':>5.3f', add_name='avg'),
+	
+	# 加载一个batch_size数据耗时
 	dict(name='data_t', fmt=':>5.3f'),
+    
+	# 包含计算loss、backward，step
 	dict(name='optim_t', fmt=':>5.3f'),
 	dict(name='lr', fmt=':>7.6f'),
 	dict(name='CE', fmt=':>5.3f', add_name='avg'),

@@ -13,7 +13,7 @@ from . import DATA
 @DATA.register_module
 class DefaultCLS(datasets.folder.DatasetFolder):  # ImageNet
 	def __init__(self, cfg, train=True, transform=None, target_transform=None, scale_kwargs=None):
-		root = '{}/{}'.format(cfg.data.root, 'train' if train else 'val')
+		root = '{}/{}'.format(cfg.data.root, 'train' if train else 'test')
 		img_loader = get_img_loader(cfg.data.loader_type)
 		super(DefaultCLS, self).__init__(root=root, loader=img_loader, extensions=IMG_EXTENSIONS, transform=transform, target_transform=target_transform)
 		self.cfg = cfg

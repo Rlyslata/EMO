@@ -55,6 +55,7 @@ def init_training(cfg):
 		cfg.nnodes = 1
 	if cfg.dist:
 		torch.cuda.set_device(cfg.local_rank)
+		# master 是个bool标识，标识本机是否为master，只在master上进行日志记录
 		cfg.master = cfg.rank == cfg.logger_rank
 		cfg.dist_backend = 'nccl'
 		torch.distributed.init_process_group(backend=cfg.dist_backend, init_method=cfg.dist_url)
@@ -238,6 +239,11 @@ def distribute_bn(model, world_size, dist_bn):
 
 
 def get_loss_scaler(scaler='native'):
+	"""
+	配合autocast 的混合精度运算，Scaler 用来梯度缩放，
+	梯度缩放通过在反向传播之前将损失值乘以一个缩放因子，来放大梯度，以避免下溢。
+	NativeScalar 在高版本torch中已被GradScalar替代
+	"""
 	scaler_dict = {
 		'none': None,
 		'native': NativeScaler(),
@@ -248,10 +254,18 @@ def get_loss_scaler(scaler='native'):
 
 @contextmanager
 def placeholder():
+	"""
+	@contextmanager 使得该函数转换为一个上下文转化器，可以在with中使用
+	"""
 	yield
 
 
 def get_autocast(autocast='native'):
+	"""
+	torch.cuda.amp.autocast 是 torch.cuda.amp 模块的一部分，提供了一个上下文管理器，
+	用于在训练时自动管理不同精度的数据类型。它可以在 with 语句块中使用，自动处理模型的前向计算，
+	决定使用哪种精度进行计算
+	"""
 	autocast_dict = {
 		'none': placeholder,
 		'native': torch.cuda.amp.autocast,

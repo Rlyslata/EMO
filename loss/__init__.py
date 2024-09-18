@@ -10,6 +10,9 @@ for file in files:
 
 
 def get_loss_terms(loss_terms, device='cpu'):
+	"""
+	返回配置的损失模块
+	"""
 	terms = {}
 	for t in loss_terms:
 		t = {k: v for k, v in t.items()}

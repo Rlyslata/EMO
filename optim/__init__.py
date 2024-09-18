@@ -34,11 +34,18 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=(), skip_keywords=()):
 
 
 def get_optim(cfg, net, lr, betas=None, filter_bias_and_bn=True):
+	"""
+		* 返回一个优化器
+		* 设置权重下降（L2正则）， 并跳过bias、bn以及model.no_weight_decay，model.no_weight_decay_keywords中定义的参数
+		* betas 是优化器动量参数
+		* 最后如果指定优化器名字为 xxx_optimizer'sname 时， 返回一个使用lookhead优化增强算法类包裹的优化器
+	"""
 	optim_kwargs = {k: v for k, v in cfg.optim.optim_kwargs.items()}
 	optim_split = optim_kwargs.pop('name').lower().split('_')
 	optim_name = optim_split[-1]
 	optim_lookahead = optim_split[0] if len(optim_split) == 2 else None
 	
+	# 设置权重衰减，需要跳过的参数
 	if optim_kwargs.get('weight_decay', None) and filter_bias_and_bn:
 		skip = {}
 		skip_keywords = {}
@@ -51,6 +58,7 @@ def get_optim(cfg, net, lr, betas=None, filter_bias_and_bn=True):
 	else:
 		params = net.parameters()
 		
+	# betas是动量参数
 	if optim_kwargs.get('betas', None) and betas:
 		optim_kwargs['betas'] = betas
 	
@@ -69,6 +77,7 @@ def get_optim(cfg, net, lr, betas=None, filter_bias_and_bn=True):
 		'rmsproptf': RMSpropTF,
 	}
 	optimizer = optim_terms[optim_name](params, lr=lr, **optim_kwargs)
+	# lookhead 是一种优化增强算法，设置两组快慢权重，快权重正常更新，慢权重更新时参照快权重
 	if optim_lookahead:
 		optimizer = Lookahead(optimizer)
 	return optimizer

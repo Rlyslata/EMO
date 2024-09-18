@@ -44,6 +44,8 @@ class CLS():
 		# 将模型切换到评估模式，以确保模型在推理（预测）时不会应用训练时的行为，如 Dropout 和 BatchNorm 计算的变化。但仍会进行梯度计算
 		self.net.eval()
 		self.ema = cfg.trainer.ema
+		
+		# 如果使用 EMA（指数移动平均），则创建并加载 EMA 模型。
 		if self.ema:
 			self.net_E = copy.deepcopy(self.net)
 			self.net_E.eval()
@@ -52,21 +54,37 @@ class CLS():
 		log_msg(self.logger, f"==> Load checkpoint: {cfg.model.model_kwargs['checkpoint_path']}") if cfg.model.model_kwargs['checkpoint_path'] else None
 		print_networks([self.net], self.cfg.size, self.logger)
 		self.dist_BN = cfg.trainer.dist_BN
+		
+		# 分布式训练需进行batchnorm同步， 不同GPU处理不同数据，方差，均值不一致影响训练
 		if cfg.dist and cfg.trainer.sync_BN != 'none':
 			self.dist_BN = ''
 			log_msg(self.logger, f'==> Synchronizing BN by {cfg.trainer.sync_BN}')
 			syncbn_dict = {'apex': ApexSyncBN, 'native': torch.nn.SyncBatchNorm.convert_sync_batchnorm, 'timm': TIMMSyncBN}
 			self.net = syncbn_dict[cfg.trainer.sync_BN](self.net)
+
 		log_msg(self.logger, '==> Creating optimizer')
 		cfg.optim.lr *= cfg.trainer.data.batch_size / 512
 		cfg.trainer.scheduler_kwargs['lr_min'] *= cfg.trainer.data.batch_size_per_gpu * self.world_size / 512
 		cfg.trainer.scheduler_kwargs['warmup_lr'] *= cfg.trainer.data.batch_size_per_gpu * self.world_size / 512
+
+		# 优化器
 		self.optim = get_optim(cfg, self.net, lr=cfg.optim.lr)
+		
+		# 精度优化设置
 		self.amp_autocast = get_autocast(cfg.trainer.scaler)
+		
+		# 梯度缩放，防止16位精度导致梯度下溢
 		self.loss_scaler = get_loss_scaler(cfg.trainer.scaler)
+
+		# SoftTargetCE 、LabelSmoothingCE
 		self.loss_terms = get_loss_terms(cfg.loss.loss_terms, device='cuda:{}'.format(cfg.local_rank))
+		
+		# 来自 Apex（由 NVIDIA 提供的混合精度训练库）的一个函数,
+		# 'O1': 在不损失精度的情况下，使用混合精度进行训练（最常用）
 		if cfg.trainer.scaler == 'apex':
 			self.net, self.optim = amp.initialize(self.net, self.optim, opt_level='O1')
+		
+		# 分布式训练，DistributedDataParallel（DDP）
 		if cfg.dist:
 			if cfg.trainer.scaler in ['none', 'native']:
 				log_msg(self.logger, '==> Native DDP')
@@ -76,19 +94,27 @@ class CLS():
 				self.net = ApexDDP(self.net, delay_allreduce=True)
 			else:
 				raise 'Invalid scaler mode: {}'.format(cfg.trainer.scaler)
+			
+
 		# =========> dataset <=================================
 		cfg.logdir_train, cfg.logdir_test = f'{cfg.logdir}/show_train', f'{cfg.logdir}/show_test'
 		makedirs([cfg.logdir_train, cfg.logdir_test], exist_ok=True)
 		log_msg(self.logger, "==> Loading dataset: {}".format(cfg.data.name))
+		# 分别加载train、val目录下的图片
 		self.train_loader, self.test_loader = get_loader(cfg)
 		cfg.data.train_size, cfg.data.test_size = len(self.train_loader), len(self.test_loader)
 		cfg.data.train_length, cfg.data.test_length = self.train_loader.dataset.length, self.test_loader.dataset.length
+		log_msg(self.logger, "==> Dataset detail : train_size = {}, test_size = {}, train_length = {}, test_length = {}".format(cfg.data.train_size, cfg.data.test_size,cfg.data.train_length, cfg.data.test_length))
+		
+		# timm（PyTorch Image Models）库中实现的一种 数据增强 技术,它通过将两张图片和它们的标签按一定比例线性组合来生成新的训练样本
 		self.mixup_fn = Mixup(**cfg.trainer.mixup_kwargs) if cfg.trainer.mixup_kwargs['prob'] > 0 else None
 		self.scheduler = get_scheduler(cfg, self.optim)
 		self.topk_recorder = cfg.trainer.topk_recorder
 		self.iter, self.epoch = cfg.trainer.iter, cfg.trainer.epoch
 		self.iter_full, self.epoch_full = cfg.trainer.iter_full, cfg.trainer.epoch_full
 		self.nan_or_inf_cnt = 0
+
+		# 从断点恢复
 		if cfg.trainer.resume_dir:
 			state_dict = torch.load(cfg.model.model_kwargs['checkpoint_path'], map_location='cpu')
 			self.net_E.load_state_dict(state_dict['net_E'], strict=cfg.model.model_kwargs['strict']) if self.ema and 'net_E' in state_dict else None
@@ -132,6 +158,9 @@ class CLS():
 			optim.step()
 
 	def check_bn(self):
+		"""
+			修正bachnorm层的均值与方差，nan->0  +inf->1 -inf->-1
+		"""
 		if hasattr(self.net, 'module'):
 			self.net.module.check_bn() if hasattr(self.net.module, 'check_bn') else None
 		else:
@@ -191,12 +220,18 @@ class CLS():
 		f.close()
 	
 	def train(self):
+		# 设置训练标志，生成训练或测试的度量对象列表 self.progress
 		self.reset(isTrain=True, train_mode=self.train_mode)
+
+		# 修正bachnorm层的均值与方差
 		self.check_bn()
+
+		# self.epoch self.iter 在 init_checkpoint 初始化为 0
 		self.train_loader.sampler.set_epoch(int(self.epoch)) if self.cfg.dist else None
 		train_length = self.cfg.data.train_size
 		train_loader = iter(self.train_loader)
 		while self.epoch < self.epoch_full and self.iter < self.iter_full:
+			# 随iter调整lr
 			self.scheduler_step(self.iter)
 			# ---------- data ----------
 			t1 = get_timepc()
@@ -206,6 +241,7 @@ class CLS():
 			t2 = get_timepc()
 			update_log_term(self.log_terms.get('data_t'), t2 - t1, 1, self.master)
 			# ---------- optimization ----------
+			# 包含计算loss、backward，step
 			self.optimize_parameters()
 			t3 = get_timepc()
 			update_log_term(self.log_terms.get('optim_t'), t3 - t2, 1, self.master)
@@ -219,6 +255,7 @@ class CLS():
 						for k, v in self.log_terms.items():
 							self.writer.add_scalar(f'Train/{k}', v.val, self.iter)
 						self.writer.flush()
+			# 每self.cfg.logging.train_reset_log_per（50） 个 batch_size 重置meter 
 			if self.iter % self.cfg.logging.train_reset_log_per == 0:
 				self.reset(isTrain=True, train_mode=self.train_mode)
 			# ---------- update train_loader ----------
