@@ -25,19 +25,19 @@ def main():
 	cfg = get_cfg(cfg_terminal)
 	
 	# --sleep 倒计时， --memory 检查GPU显存占用
-	# run_pre(cfg)
+	run_pre(cfg)
 	
-	# init_training(cfg)
+	init_training(cfg)
 	# print(cfg.trainer.data.num_workers)
 	# print(cfg.trainer.data.num_workers_per_gpu)
 	# print('world_size = {cfg.world_size} rank = {cfg.rank} local_rank = {cfg.local_rank} dist = {cfg.dist}')
 
 	#恢复或设置日志记录器
-	# init_checkpoint(cfg)
+	init_checkpoint(cfg)
 
-	# trainer = get_trainer(cfg)
+	trainer = get_trainer(cfg)
 	
-	# trainer.run()
+	trainer.run()
 
 
 if __name__ == '__main__':

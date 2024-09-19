@@ -107,6 +107,10 @@ logging.log_terms_test = [
 	dict(name='top1_cnt', fmt=':>6.0f', show_name='sum'),
 	dict(name='top5_cnt', fmt=':>6.0f', show_name='sum'),
 	dict(name='top_all', fmt=':>6.0f', show_name='sum'),
+    dict(name='tp', fmt=':>6.0f', show_name='sum'),
+    dict(name='tn', fmt=':>6.0f', show_name='sum'),
+    dict(name='fp', fmt=':>6.0f', show_name='sum'),
+    dict(name='fn', fmt=':>6.0f', show_name='sum'),
 ]
 logging.train_reset_log_per = 50
 logging.train_log_per = 50

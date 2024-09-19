@@ -4,12 +4,12 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        {
-            "name": "Python Debugger: Module",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "model.emo"
-        },
+        // {
+        //     "name": "Python Debugger: Module",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "module": "model.emo"
+        // },
         {
             "name": "Python Debugger: Current File",
             "type": "debugpy",
@@ -33,7 +33,7 @@
                 "test",
                 "model.name=EMO_1M",
                 "trainer.data.batch_size=32",
-                "model.model_kwargs.checkpoint_path=runs_emo/CLS_EMO_1M_DefaultCLS_20240905-204902/latest_ckpt.pth"
+                "model.model_kwargs.checkpoint_path=runs_emo/CLS_EMO_1M_DefaultCLS_20240905-213636/net.pth"
             ],
             "console": "integratedTerminal",
             "justMyCode": false, // 允许调试库代码

@@ -196,7 +196,7 @@ class CLS():
 		
 	def post_update(self):
 		if not self.cfg.trainer.mixup_kwargs or not self.isTrain:
-			top15, top15bs_cnt = accuracy(self.outputs['out'], self.targets, topk=(1, 2))
+			top15, top15bs_cnt = accuracy(self.outputs['out'], self.targets, topk=(1, ))
 			# top1, top5 = top15
 			# update_log_term(self.log_terms.get('top1'), reduce_tensor(top1, self.world_size).clone().detach().item(), self.bs, self.master)
 			# update_log_term(self.log_terms.get('top5'), reduce_tensor(top5, self.world_size).clone().detach().item(), self.bs, self.master)
@@ -273,7 +273,7 @@ class CLS():
 				self.cfg.total_time = get_timepc() - self.cfg.task_start_time
 				total_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time)))
 				eta_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time / self.epoch * (self.epoch_full - self.epoch))))
-				log_msg(self.logger, f'==> Total time: {total_time_str}\t Eta: {eta_time_str} \tLogged in \'{self.cfg.logdir}\'')
+				log_msg(self.logger, f'==> Total time ({self.cfg.mode}): {total_time_str}\t Eta: {eta_time_str} \tLogged in \'{self.cfg.logdir}\'')
 				self.save_checkpoint()
 				self.reset(isTrain=True, train_mode=self.train_mode)
 				self.check_bn()
@@ -303,6 +303,14 @@ class CLS():
 					log_msg(self.logger, msg)
 		top1 = self.log_terms.get('top1_cnt').sum * 100. / min(self.cfg.data.test_length, self.log_terms.get('top_all').sum) if self.log_terms.get('top_all').sum > 0 else 0
 		top5 = self.log_terms.get('top5_cnt').sum * 100. / min(self.cfg.data.test_length, self.log_terms.get('top_all').sum) if self.log_terms.get('top_all').sum > 0 else 0
+		
+		# 记录测试耗时
+		self.cfg.total_time = get_timepc() - self.cfg.task_start_time
+		total_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time)))
+		avg_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time / test_length)))
+		log_msg(self.logger, f'==> Total time ({self.cfg.mode}): {total_time_str}\t avg_time_per_batch({self.cfg.trainer.data.batch_size_per_gpu_test}): {avg_time_str} \tLogged in \'{self.cfg.logdir}\'')
+		
+		# Topk
 		log_msg(self.logger, f'{name}: {top1:.3f} ({top5:.3f})')
 		return top1, top5
 	

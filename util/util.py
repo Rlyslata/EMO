@@ -237,7 +237,17 @@ def update_log_term(term, val, n, master):
 def accuracy(output, target, topk=(1,)):
 	maxk = max(topk)
 	batch_size = target.size(0)
+	# input: 需要查找 top-k 元素的张量,
+	# k: 指定要返回的最大或最小元素的数量,
+	# dim (可选): 指定沿哪个维度查找 top-k 值。如果不指定，默认查找的是最后一个维度。
+	# largest (可选，默认 True): 如果设置为 True，返回最大的前 k 个值；如果设置为 False，返回最小的前 k 个值。
+	# sorted (可选，默认 True): 是否对返回的前 k 个值进行排序。如果 True，返回的值将按降序排序。
+	# out (可选): 可以传入两个张量的元组，分别用来接收结果
+
+	# @return: values: 包含前 k 个最大（或最小）值的张量, indices: 这些 top-k 值在输入张量中对应的索引。
 	_, pred = output.topk(maxk, 1, True, True)
 	pred = pred.t()
 	correct = pred.eq(target.reshape(1, -1).expand_as(pred))
+	
+	# 计算 TP， TN，FP，FN
 	return [correct[:k].reshape(-1).float().sum(0) * 100. / batch_size for k in topk], [correct[:k].reshape(-1).float().sum(0) for k in topk] + [batch_size]
