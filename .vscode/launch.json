@@ -15,8 +15,30 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": [
+                "-c",
+                "configs/mobile/cls_emo",
+                "-m",
+                "test",
+                "--model_name",
+                "EMO_1M",
+                "--checkpoint_path",
+                "runs_emo/CLS_EMO_1M_DefaultCLS_20240905-213636/net.pth"
+            ]
         },
+        // {
+        //     "name": "Python Debugger: Current File",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "module": "run",
+        //     "console": "integratedTerminal",
+        //     "args": [
+        //         "-c",
+        //         "configs/mobile/cls_emo",
+        //         "-m test --model_name EMO_1M  --checkpoint_path runs_emo/CLS_EMO_1M_DefaultCLS_20240905-213636/net.pth"
+        //     ]
+        // },
         {
             "name": "Python Debugger: Module",
             "type": "debugpy",

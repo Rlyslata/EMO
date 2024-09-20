@@ -280,7 +280,9 @@ class CLS():
 					distribute_bn(self.net_E, self.world_size, self.dist_BN)
 				self.optim.sync_lookahead() if hasattr(self.optim, 'sync_lookahead') else None
 				if self.epoch >= self.cfg.trainer.start_test_epoch or self.epoch % self.cfg.trainer.every_test_epoch == 0:
-					self.test()
+					if self.iter % self.cfg.logging.train_reset_log_per != 0 :
+						# 防止reset重置测试meter，导致计算accuracy、precision等时除0
+						self.test()
 				else:
 					self.test_ghost()
 					self.is_best, self.is_best_ema = False, False
