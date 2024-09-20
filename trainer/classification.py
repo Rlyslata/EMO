@@ -352,7 +352,8 @@ class CLS():
 
 		# 测试结束日志
 		log_msg(self.logger, '==> Finishing testing task ({name}):')
-		log_msg(self.logger, f'{name}: top1: {top1:.3f} top5: ({top5:.3f}) accuracy: ({acc:.3f}) precision: ({precision:.3f}) recall: ({recall:.3f}) f1_score: ({f1_score:.3f}) ')
+		if(self.cfg.mode == 'test'):
+			log_msg(self.logger, f'{name}: top1: {top1:.3f} top5: ({top5:.3f}) accuracy: ({acc:.3f}) precision: ({precision:.3f}) recall: ({recall:.3f}) f1_score: ({f1_score:.3f}) ')
 		log_msg(self.logger, f'==> Total time ({self.cfg.mode}): {total_time_str}\t avg_time_per_batch({self.cfg.trainer.data.batch_size_per_gpu_test}): {avg_time_str} \tLogged in \'{self.cfg.logdir}\'')
 		return top1, top5
 	
