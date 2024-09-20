@@ -332,17 +332,18 @@ class CLS():
 		tn = self.log_terms.get('tn').sum
 		fp = self.log_terms.get('fp').sum
 		fn = self.log_terms.get('fn').sum
-		# 准确率, 表示预测正确的比例
-		acc = (tn + tp) / (tp + tn + fp + fn)
+		if self.cfg.mode == 'test' : 
+			# 准确率, 表示预测正确的比例
+			acc = (tn + tp) / (tp + tn + fp + fn)
 
-		# 精确率, 模型预测为正类的样本中，实际为正类的比例
-		precision = tp / (tp + fp)
+			# 精确率, 模型预测为正类的样本中，实际为正类的比例
+			precision = tp / (tp + fp)
 
-		# 召回率, 实际为正类的样本中，模型预测正确的比例
-		recall = tp / (tp + fn)
+			# 召回率, 实际为正类的样本中，模型预测正确的比例
+			recall = tp / (tp + fn)
 
-		# F1-Score, 是精确率和召回率的调和平均值
-		f1_score = 2 * precision * recall / (precision + recall)
+			# F1-Score, 是精确率和召回率的调和平均值
+			f1_score = 2 * precision * recall / (precision + recall)
 		
 		# 记录测试耗时
 		self.cfg.total_time = get_timepc() - self.cfg.task_start_time
