@@ -5,6 +5,8 @@ import logging
 import shutil
 import argparse
 import torch
+import psutil
+import subprocess
 from tensorboardX import SummaryWriter
 
 
@@ -234,9 +236,12 @@ def update_log_term(term, val, n, master):
 	term.update(val, n) if term and master else None
 
 
-def accuracy(output, target, topk=(1,)):
+def accuracy(output, target, topk=(1,)) -> dict:
 	maxk = max(topk)
 	batch_size = target.size(0)
+	# 类别数
+	class_num = output.shape[1]
+	assert class_num >= maxk, '最大类别数需 <= {class_num}'
 	# input: 需要查找 top-k 元素的张量,
 	# k: 指定要返回的最大或最小元素的数量,
 	# dim (可选): 指定沿哪个维度查找 top-k 值。如果不指定，默认查找的是最后一个维度。
@@ -247,7 +252,94 @@ def accuracy(output, target, topk=(1,)):
 	# @return: values: 包含前 k 个最大（或最小）值的张量, indices: 这些 top-k 值在输入张量中对应的索引。
 	_, pred = output.topk(maxk, 1, True, True)
 	pred = pred.t()
+	pred_max_index = pred.argmax(dim = 0)
 	correct = pred.eq(target.reshape(1, -1).expand_as(pred))
+
 	
-	# 计算 TP， TN，FP，FN
-	return [correct[:k].reshape(-1).float().sum(0) * 100. / batch_size for k in topk], [correct[:k].reshape(-1).float().sum(0) for k in topk] + [batch_size]
+	# topk 预测准确数
+	topk_num = [correct[:k].reshape(-1).float().sum(0) for k in topk]
+	# topk 预测准确率
+	topk_acc = [num * 100. / batch_size for num in topk_num]
+
+	# 每个类别分别求 tp,tn,fp,fn
+	tp,tn,fp,fn = [torch.zeros(class_num)] * 4
+	
+	for cls in range(class_num) :
+		pred_positive = (pred_max_index == cls)
+		actual_positive = (target == cls)
+		# 计算TP, TN, FP, FN
+		tp[cls] = torch.sum(pred_positive & actual_positive).item()  # True Positive
+		tn[cls] = torch.sum(~pred_positive & ~actual_positive).item() # True Negative
+		fp[cls] = torch.sum(pred_positive & ~actual_positive).item()  # False Positive
+		fn[cls] = torch.sum(~pred_positive & actual_positive).item()  # False Negative
+		
+
+	return  {
+		# topk 预测准确率
+		'topk_acc' : topk_num,
+		# topk 预测正确的样本数
+		'topk_num' : topk_acc,
+		'tp' : tp,
+		'tn' : tn,
+		'fp' : fp,
+		'fn' : fn,
+		# 样本全体
+		'top_all' : batch_size
+	}
+
+
+def get_cpu_and_memory_usage():
+    # 获取当前进程的 PID
+    pid = os.getpid()
+    process = psutil.Process(pid)
+
+    # 获取 CPU 占用率（百分比）
+    cpu_usage = psutil.cpu_percent(interval=1)
+
+    # 获取内存使用情况
+    memory_info = process.memory_info()
+
+	
+    # print(f"CPU 使用率: {cpu_usage}%")
+    # print(f"内存使用情况: {memory_info.rss / (1024 ** 2)} MB") 
+	# rss 是常驻内存大小
+
+    return {'cpu':cpu_usage, 'memory':memory_info.rss / (1024 ** 2)}
+
+def get_gpu_memory_usage():
+	"""
+	使用 torch.cuda 获取已使用显存MB
+	"""
+
+	# print(f"已使用显存: {torch.cuda.memory_allocated() / (1024 ** 2)} MB")
+	# print(f"最大显存占用: {torch.cuda.max_memory_allocated() / (1024 ** 2)} MB")
+
+	return torch.cuda.memory_allocated() / (1024 ** 2)
+ 
+def get_gpu_memory_nvidia_smi():
+	"""
+	使用 nvidia-smi 获取已使用显存MB
+	"""
+	result = subprocess.check_output(
+        ['nvidia-smi', '--query-gpu=memory.used', '--format=csv,nounits,noheader'], 
+        encoding='utf-8')
+	gpu_memory = int(result.strip())
+	# print(f"nvidia-smi 显存使用: {gpu_memory} MB")
+	return {'gpu': gpu_memory}
+
+def get_resources_occupation() :
+	res = get_cpu_and_memory_usage()
+	res['gpu'] = get_gpu_memory_nvidia_smi()['gpu']
+	return res
+
+# if __name__ == '__main__':
+# 	allocation = get_resources_occupation()
+# 	print(allocation)
+	
+# 	meter = AvgMeter('name', fmt=':f', show_name='sum', add_name='count')
+# 	progress = ProgressMeter({'name':meter}, default_prefix='Test')
+
+# 	meter.update(1,1)
+# 	meter.update(1.1,1)
+# 	print(progress.get_msg(100,3000,1,30))
+# 	print(str(meter))

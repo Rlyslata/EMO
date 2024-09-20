@@ -101,6 +101,9 @@ logging.log_terms_train = [
 	dict(name='lr', fmt=':>7.6f'),
 	dict(name='CE', fmt=':>5.3f', add_name='avg'),
 	dict(name='KD', fmt=':>5.3f', add_name='avg'),
+    dict(name='cpu', fmt=':>5.3f', show_name='avg'),
+    dict(name='memory', fmt=':>5.3f', show_name='avg'),
+    dict(name='gpu', fmt=':>5.3f', show_name='avg'),
 ]
 logging.log_terms_test = [
 	dict(name='batch_t', fmt=':>5.3f', add_name='avg'),
@@ -111,6 +114,9 @@ logging.log_terms_test = [
     dict(name='tn', fmt=':>6.0f', show_name='sum'),
     dict(name='fp', fmt=':>6.0f', show_name='sum'),
     dict(name='fn', fmt=':>6.0f', show_name='sum'),
+    dict(name='cpu', fmt=':>5.3f', show_name='avg'),
+    dict(name='memory', fmt=':>5.3f', show_name='avg'),
+    dict(name='gpu', fmt=':>5.3f', show_name='avg'),
 ]
 logging.train_reset_log_per = 50
 logging.train_log_per = 50

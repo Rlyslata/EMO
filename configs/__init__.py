@@ -2,6 +2,7 @@ import importlib
 from argparse import Namespace
 from ast import literal_eval
 from util.net import get_timepc
+from util.util import get_resources_occupation
 
 
 def get_cfg(opt_terminal):
@@ -62,4 +63,6 @@ def get_cfg(opt_terminal):
 	
 	# 任务开始时间
 	cfg.task_start_time = get_timepc()
+	# 任务开始时的资源占用
+	cfg.task_start_allocation = get_resources_occupation()
 	return cfg

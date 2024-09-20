@@ -2,7 +2,7 @@ import os
 import copy
 import datetime
 import torch
-from util.util import makedirs, log_cfg, able, log_msg, get_log_terms, update_log_term, accuracy
+from util.util import makedirs, log_cfg, able, log_msg, get_log_terms, update_log_term, accuracy,get_resources_occupation
 from util.net import save_checkpoint, trans_state_dict, print_networks, get_timepc, reduce_tensor
 from optim.scheduler import get_scheduler
 from data import get_loader
@@ -196,15 +196,22 @@ class CLS():
 		
 	def post_update(self):
 		if not self.cfg.trainer.mixup_kwargs or not self.isTrain:
-			top15, top15bs_cnt = accuracy(self.outputs['out'], self.targets, topk=(1, ))
+			res_dict = accuracy(self.outputs['out'], self.targets, topk=(1, 2))
 			# top1, top5 = top15
 			# update_log_term(self.log_terms.get('top1'), reduce_tensor(top1, self.world_size).clone().detach().item(), self.bs, self.master)
 			# update_log_term(self.log_terms.get('top5'), reduce_tensor(top5, self.world_size).clone().detach().item(), self.bs, self.master)
-			top1_cnt, top5_cnt, top_all = top15bs_cnt
+			top1_cnt, top5_cnt, top_all = res_dict['topk_num'][0], res_dict['topk_num'][1], res_dict['top_all'] 
+
+			# 0 为 positive
+			tp , tn, fp , fn = res_dict['tp'][0], res_dict['tn'][0], res_dict['fp'][0], res_dict['fn'][0]
 			update_log_term(self.log_terms.get('top1_cnt'), reduce_tensor(top1_cnt, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
 			update_log_term(self.log_terms.get('top5_cnt'), reduce_tensor(top5_cnt, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
 			update_log_term(self.log_terms.get('top_all'), reduce_tensor(top_all, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
-	
+			update_log_term(self.log_terms.get('tp'), reduce_tensor(tp, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
+			update_log_term(self.log_terms.get('tn'), reduce_tensor(tn, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
+			update_log_term(self.log_terms.get('fp'), reduce_tensor(fp, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
+			update_log_term(self.log_terms.get('fn'), reduce_tensor(fn, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
+
 	def _finish(self):
 		log_msg(self.logger, 'finish training')
 		self.writer.close() if self.master else None
@@ -246,6 +253,13 @@ class CLS():
 			t3 = get_timepc()
 			update_log_term(self.log_terms.get('optim_t'), t3 - t2, 1, self.master)
 			update_log_term(self.log_terms.get('batch_t'), t3 - t1, 1, self.master)
+
+			# ---------- resources occupation ----------
+			occupation = get_resources_occupation()
+			update_log_term(self.log_terms.get('cpu'), occupation['cpu'] - self.cfg.task_start_allocation['cpu'],1,self.master)
+			update_log_term(self.log_terms.get('memory'), occupation['memory'] - self.cfg.task_start_allocation['memory'],1,self.master)
+			update_log_term(self.log_terms.get('gpu'), occupation['gpu'] - self.cfg.task_start_allocation['gpu'],1,self.master)
+
 			# ---------- log ----------
 			if self.master:
 				if self.iter % self.cfg.logging.train_log_per == 0:
@@ -279,6 +293,7 @@ class CLS():
 				self.check_bn()
 				self.train_loader.sampler.set_epoch(int(self.epoch)) if self.cfg.dist else None
 				train_loader = iter(self.train_loader)
+
 		self._finish()
 	
 	@torch.no_grad()
@@ -296,6 +311,12 @@ class CLS():
 			self.post_update()
 			t2 = get_timepc()
 			update_log_term(self.log_terms.get('batch_t'), t2 - t1, 1, self.master)
+			if(self.cfg.mode == 'test') : 
+				occupation = get_resources_occupation()
+				update_log_term(self.log_terms.get('cpu'), occupation['cpu'] - self.cfg.task_start_allocation['cpu'],1,self.master)
+				update_log_term(self.log_terms.get('memory'), occupation['memory'] - self.cfg.task_start_allocation['memory'],1,self.master)
+				update_log_term(self.log_terms.get('gpu'), occupation['gpu'] - self.cfg.task_start_allocation['gpu'],1,self.master)
+
 			# ---------- log ----------
 			if self.master:
 				if batch_idx % self.cfg.logging.test_log_per == 0 or batch_idx == test_length:
@@ -304,14 +325,32 @@ class CLS():
 		top1 = self.log_terms.get('top1_cnt').sum * 100. / min(self.cfg.data.test_length, self.log_terms.get('top_all').sum) if self.log_terms.get('top_all').sum > 0 else 0
 		top5 = self.log_terms.get('top5_cnt').sum * 100. / min(self.cfg.data.test_length, self.log_terms.get('top_all').sum) if self.log_terms.get('top_all').sum > 0 else 0
 		
+		
+		tp = self.log_terms.get('tp').sum
+		tn = self.log_terms.get('tn').sum
+		fp = self.log_terms.get('fp').sum
+		fn = self.log_terms.get('fn').sum
+		# 准确率, 表示预测正确的比例
+		acc = (tn + tp) / (tp + tn + fp + fn)
+
+		# 精确率, 模型预测为正类的样本中，实际为正类的比例
+		precision = tp / (tp + fp)
+
+		# 召回率, 实际为正类的样本中，模型预测正确的比例
+		recall = tp / (tp + fn)
+
+		# F1-Score, 是精确率和召回率的调和平均值
+		f1_score = 2 * precision * recall / (precision + recall)
+		
 		# 记录测试耗时
 		self.cfg.total_time = get_timepc() - self.cfg.task_start_time
 		total_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time)))
 		avg_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time / test_length)))
+
+		# 测试结束日志
+		log_msg(self.logger, '==> Finishing testing task ({name}):')
+		log_msg(self.logger, f'{name}: top1: {top1:.3f} top5: ({top5:.3f}) accuracy: ({acc:.3f}) precision: ({precision:.3f}) recall: ({recall:.3f}) f1_score: ({f1_score:.3f}) ')
 		log_msg(self.logger, f'==> Total time ({self.cfg.mode}): {total_time_str}\t avg_time_per_batch({self.cfg.trainer.data.batch_size_per_gpu_test}): {avg_time_str} \tLogged in \'{self.cfg.logdir}\'')
-		
-		# Topk
-		log_msg(self.logger, f'{name}: {top1:.3f} ({top5:.3f})')
 		return top1, top5
 	
 	def test(self):
