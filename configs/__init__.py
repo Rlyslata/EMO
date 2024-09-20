@@ -33,6 +33,13 @@ def get_cfg(opt_terminal):
 	for key, val in opt_terminal.__dict__.items():
 		cfg.__setattr__(key, val)
 
+	if opt_terminal.__dict__.get('model_name', None) :
+		cfg.model.name = opt_terminal.__dict__.get('model_name',None)
+	if opt_terminal.__dict__.get('batch_size', None) : 
+		cfg.trainer.data.batch_size = opt_terminal.__dict__.get('batch_size', None)
+	if opt_terminal.__dict__.get('data_path', None) : 
+		cfg.data.root = opt_terminal.__dict__.get('data_path', None)
+
 	# 使用字符串插值，生成一个用于分布式训练的命令
 	cfg.command = f'python3 -m torch.distributed.launch --nproc_per_node=$nproc_per_node --nnodes=$nnodes --node_rank=$node_rank --master_addr=$master_addr --master_port=$master_port --use_env run.py -c {cfg.cfg_path} -m {cfg.mode} --sleep {cfg.sleep} --memory {cfg.memory} --dist_url {cfg.dist_url} --logger_rank {cfg.logger_rank} {" ".join(cfg.opts)}'
 	
