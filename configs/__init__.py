@@ -33,6 +33,8 @@ def get_cfg(opt_terminal):
 	for key, val in opt_terminal.__dict__.items():
 		cfg.__setattr__(key, val)
 
+	if opt_terminal.__dict__.get('checkpoint_path', None) :
+		cfg.model.model_kwargs.checkpoint_path = opt_terminal.__dict__.get('checkpoint_path',None)
 	if opt_terminal.__dict__.get('model_name', None) :
 		cfg.model.name = opt_terminal.__dict__.get('model_name',None)
 	if opt_terminal.__dict__.get('batch_size', None) : 

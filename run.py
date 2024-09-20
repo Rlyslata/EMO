@@ -14,6 +14,7 @@ def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-c', '--cfg_path', default='configs/debug.py')
 	parser.add_argument('-m', '--mode', default='train', choices=['train', 'test', 'ft'])
+	parser.add_argument('--checkpoint_path', type=str, default=None)
 	parser.add_argument('--model_name', type=str, default=None)
 	parser.add_argument('--data_path', type=str, default=None)
 	parser.add_argument('--batch_size', type=int, default=None)
