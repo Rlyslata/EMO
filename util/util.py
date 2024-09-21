@@ -264,8 +264,6 @@ def accuracy(output, target, topk=(1,)) -> dict:
 	# 每个类别分别求 tp,tn,fp,fn
 	tp,tn,fp,fn = [torch.zeros(class_num) for _ in range(4)]
 	
-	print(pred_max_index)
-	print(target)
 	for cls in range(class_num) :
 		pred_positive = (pred_max_index == cls)
 		actual_positive = (target == cls)

@@ -280,9 +280,7 @@ class CLS():
 					distribute_bn(self.net_E, self.world_size, self.dist_BN)
 				self.optim.sync_lookahead() if hasattr(self.optim, 'sync_lookahead') else None
 				if self.epoch >= self.cfg.trainer.start_test_epoch or self.epoch % self.cfg.trainer.every_test_epoch == 0:
-					if self.iter % self.cfg.logging.train_reset_log_per != 0 :
-						# 防止reset重置测试meter，导致计算accuracy、precision等时除0
-						self.test()
+					self.test()
 				else:
 					self.test_ghost()
 					self.is_best, self.is_best_ema = False, False
@@ -327,12 +325,17 @@ class CLS():
 		top1 = self.log_terms.get('top1_cnt').sum * 100. / min(self.cfg.data.test_length, self.log_terms.get('top_all').sum) if self.log_terms.get('top_all').sum > 0 else 0
 		top5 = self.log_terms.get('top5_cnt').sum * 100. / min(self.cfg.data.test_length, self.log_terms.get('top_all').sum) if self.log_terms.get('top_all').sum > 0 else 0
 		
-		
-		tp = self.log_terms.get('tp').sum
-		tn = self.log_terms.get('tn').sum
-		fp = self.log_terms.get('fp').sum
-		fn = self.log_terms.get('fn').sum
+		# 记录测试耗时
+		self.cfg.total_time = get_timepc() - self.cfg.task_start_time
+		total_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time)))
+		avg_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time / test_length)))
+
 		if self.cfg.mode == 'test' : 
+			tp = self.log_terms.get('tp').sum
+			tn = self.log_terms.get('tn').sum
+			fp = self.log_terms.get('fp').sum
+			fn = self.log_terms.get('fn').sum
+			
 			# 准确率, 表示预测正确的比例
 			acc = (tn + tp) / (tp + tn + fp + fn)
 
@@ -345,16 +348,10 @@ class CLS():
 			# F1-Score, 是精确率和召回率的调和平均值
 			f1_score = 2 * precision * recall / (precision + recall)
 		
-		# 记录测试耗时
-		self.cfg.total_time = get_timepc() - self.cfg.task_start_time
-		total_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time)))
-		avg_time_str = str(datetime.timedelta(seconds=int(self.cfg.total_time / test_length)))
-
-		# 测试结束日志
-		log_msg(self.logger, '==> Finishing testing task ({name}):')
-		if(self.cfg.mode == 'test'):
-			log_msg(self.logger, f'{name}: top1: {top1:.3f} top5: ({top5:.3f}) accuracy: ({acc:.3f}) precision: ({precision:.3f}) recall: ({recall:.3f}) f1_score: ({f1_score:.3f}) ')
-		log_msg(self.logger, f'==> Total time ({self.cfg.mode}): {total_time_str}\t avg_time_per_batch({self.cfg.trainer.data.batch_size_per_gpu_test}): {avg_time_str} \tLogged in \'{self.cfg.logdir}\'')
+			# 测试结束日志
+			log_msg(self.logger, '==> Finishing testing task ({name}): top1: {top1:.3f} top5: ({top5:.3f})')
+			log_msg(self.logger, f'==> accuracy: ({acc:.3f}) precision: ({precision:.3f}) recall: ({recall:.3f}) f1_score: ({f1_score:.3f}) ')
+		log_msg(self.logger, f'==> Total time for test (mode={self.cfg.mode}): {total_time_str}\t avg_time_per_batch({self.cfg.trainer.data.batch_size_per_gpu_test}): {avg_time_str} \tLogged in \'{self.cfg.logdir}\'')
 		return top1, top5
 	
 	def test(self):
