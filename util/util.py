@@ -252,7 +252,7 @@ def accuracy(output, target, topk=(1,)) -> dict:
 	# @return: values: 包含前 k 个最大（或最小）值的张量, indices: 这些 top-k 值在输入张量中对应的索引。
 	_, pred = output.topk(maxk, 1, True, True)
 	pred = pred.t()
-	pred_max_index = pred.argmax(dim = 0)
+	pred_max_index = output.argmax(dim = 1).reshape(1,-1)
 	correct = pred.eq(target.reshape(1, -1).expand_as(pred))
 
 	
@@ -262,8 +262,10 @@ def accuracy(output, target, topk=(1,)) -> dict:
 	topk_acc = [num * 100. / batch_size for num in topk_num]
 
 	# 每个类别分别求 tp,tn,fp,fn
-	tp,tn,fp,fn = [torch.zeros(class_num)] * 4
+	tp,tn,fp,fn = [torch.zeros(class_num) for _ in range(4)]
 	
+	print(pred_max_index)
+	print(target)
 	for cls in range(class_num) :
 		pred_positive = (pred_max_index == cls)
 		actual_positive = (target == cls)
@@ -332,14 +334,18 @@ def get_resources_occupation() :
 	res['gpu'] = get_gpu_memory_nvidia_smi()['gpu']
 	return res
 
-# if __name__ == '__main__':
-# 	allocation = get_resources_occupation()
-# 	print(allocation)
+if __name__ == '__main__':
+	# allocation = get_resources_occupation()
+	# print(allocation)
 	
-# 	meter = AvgMeter('name', fmt=':f', show_name='sum', add_name='count')
-# 	progress = ProgressMeter({'name':meter}, default_prefix='Test')
+	# meter = AvgMeter('name', fmt=':f', show_name='sum', add_name='count')
+	# progress = ProgressMeter({'name':meter}, default_prefix='Test')
 
-# 	meter.update(1,1)
-# 	meter.update(1.1,1)
-# 	print(progress.get_msg(100,3000,1,30))
-# 	print(str(meter))
+	# meter.update(1,1)
+	# meter.update(1.1,1)
+	# print(progress.get_msg(100,3000,1,30))
+	# print(str(meter))
+	output = torch.randn((5,2))
+	target = torch.randint(0,2,(5,))
+	res = accuracy(output=output, target=target,topk=(1,2))
+	print(res)
