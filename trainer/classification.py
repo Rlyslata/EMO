@@ -349,21 +349,21 @@ class CLS():
 			tn = self.log_terms.get('tn').sum
 			fp = self.log_terms.get('fp').sum
 			fn = self.log_terms.get('fn').sum
-			
+			eps = 0.0000000000001
 			# 准确率, 表示预测正确的比例
-			acc = (tn + tp) / (tp + tn + fp + fn)
+			acc = (tn + tp) / (tp + tn + fp + fn + eps)
 
 			# 精确率, 模型预测为正类的样本中，实际为正类的比例
-			precision = tp / (tp + fp)
+			precision = tp / (tp + fp + eps)
 
 			# 召回率, 实际为正类的样本中，模型预测正确的比例
-			recall = tp / (tp + fn)
+			recall = tp / (tp + fn + eps)
 
 			# 真负率
-			specificity = tn / (tn + fp)
+			specificity = tn / (tn + fp + eps)
 
 			# F1-Score, 是精确率和召回率的调和平均值
-			f1_score = 2 * precision * recall / (precision + recall)
+			f1_score = 2 * precision * recall / (precision + recall + eps)
 		
 			# 测试结束日志
 			log_msg(self.logger, '==> Finishing testing task ({name}): top1: {top1:.3f} top5: ({top5:.3f})')
