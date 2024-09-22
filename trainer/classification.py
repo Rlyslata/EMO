@@ -2,6 +2,7 @@ import os
 import copy
 import datetime
 import torch
+from util.draw import Drawing
 from util.util import makedirs, log_cfg, able, log_msg, get_log_terms, update_log_term, accuracy,get_resources_occupation
 from util.net import save_checkpoint, trans_state_dict, print_networks, get_timepc, reduce_tensor
 from optim.scheduler import get_scheduler
@@ -125,6 +126,8 @@ class CLS():
 			self.nan_or_inf_cnt = state_dict['nan_or_inf_cnt'] if state_dict.get('nan_or_inf_cnt', None) else 0
 		else:
 			pass
+		# 绘图
+		self.drawer = Drawing(self.cfg.logdir+'/show_test/')
 		self.train_mode = True if self.cfg.mode == 'train' else False
 		log_cfg(self.cfg)
 		
@@ -202,8 +205,8 @@ class CLS():
 			# update_log_term(self.log_terms.get('top5'), reduce_tensor(top5, self.world_size).clone().detach().item(), self.bs, self.master)
 			top1_cnt, top5_cnt, top_all = res_dict['topk_num'][0], res_dict['topk_num'][1], res_dict['top_all'] 
 
-			# 0 为 positive
-			tp , tn, fp , fn = res_dict['tp'][0], res_dict['tn'][0], res_dict['fp'][0], res_dict['fn'][0]
+			# 1 为 positive
+			tp , tn, fp , fn = res_dict['tp'][1], res_dict['tn'][1], res_dict['fp'][1], res_dict['fn'][1]
 			update_log_term(self.log_terms.get('top1_cnt'), reduce_tensor(top1_cnt, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
 			update_log_term(self.log_terms.get('top5_cnt'), reduce_tensor(top5_cnt, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
 			update_log_term(self.log_terms.get('top_all'), reduce_tensor(top_all, self.world_size, mode='sum', sum_avg=False).clone().detach().item(), 1, self.master)
@@ -295,7 +298,16 @@ class CLS():
 				train_loader = iter(self.train_loader)
 
 		self._finish()
-	
+	def add_to_drawer(self):
+		"""
+			add data to drawer for ROC or PR curve, etc.
+		"""
+		assert self.outputs['out'].shape[1] == 2, 'Only for two-classification task!'  # 二分类任务
+		# [:,:1] 仍指向同一个对象，y_prob 为正类概率, SIGMOD 转化为概率
+		y_prob = 1 / (1 + torch.exp(-self.outputs['out'][:,1:2].cpu()))
+		y_true = self.targets.cpu()
+		self.drawer.append_data(y_prob=y_prob, y_true=y_true)
+
 	@torch.no_grad()
 	def test_net(self, net, name=''):
 		self.reset(isTrain=False, train_mode=False)
@@ -308,6 +320,8 @@ class CLS():
 			test_data = next(test_loader)
 			self.set_input(test_data)
 			self.forward(net)
+			# 绘图
+			self.add_to_drawer()
 			self.post_update()
 			t2 = get_timepc()
 			update_log_term(self.log_terms.get('batch_t'), t2 - t1, 1, self.master)
@@ -351,6 +365,10 @@ class CLS():
 			# 测试结束日志
 			log_msg(self.logger, '==> Finishing testing task ({name}): top1: {top1:.3f} top5: ({top5:.3f})')
 			log_msg(self.logger, f'==> accuracy: ({acc:.3f}) precision: ({precision:.3f}) recall: ({recall:.3f}) f1_score: ({f1_score:.3f}) ')
+
+			# 绘图
+			self.drawer.draw_roc('ROC curve for net.png')
+			self.drawer.draw_pr('Precision-Recall curve for net.png')
 		log_msg(self.logger, f'==> Total time for test (mode={self.cfg.mode}): {total_time_str}\t avg_time_per_batch({self.cfg.trainer.data.batch_size_per_gpu_test}): {avg_time_str} \tLogged in \'{self.cfg.logdir}\'')
 		return top1, top5
 	
