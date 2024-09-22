@@ -359,12 +359,15 @@ class CLS():
 			# 召回率, 实际为正类的样本中，模型预测正确的比例
 			recall = tp / (tp + fn)
 
+			# 真负率
+			specificity = tn / (tn + fp)
+
 			# F1-Score, 是精确率和召回率的调和平均值
 			f1_score = 2 * precision * recall / (precision + recall)
 		
 			# 测试结束日志
 			log_msg(self.logger, '==> Finishing testing task ({name}): top1: {top1:.3f} top5: ({top5:.3f})')
-			log_msg(self.logger, f'==> accuracy: ({acc:.3f}) precision: ({precision:.3f}) recall: ({recall:.3f}) f1_score: ({f1_score:.3f}) ')
+			log_msg(self.logger, f'==> accuracy: ({acc:.3f}) precision: ({precision:.3f}) recall: ({recall:.3f}) f1_score: ({f1_score:.3f}) specificity: ({specificity:.3f})')
 
 			# 绘图
 			self.drawer.draw_roc('ROC curve for net.png')
